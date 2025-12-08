@@ -40,6 +40,44 @@ namespace top
     p_t right_top;
   };
 
+  struct VSeg : IDraw
+  {
+    p_t a, b;
+
+    VSeg(int x, int y1, int y2) : a{x, y1}, b{x, y2} {}
+
+    p_t begin() const override
+    {
+      return a;
+    }
+
+    p_t next(p_t cur) const override
+    {
+      if (cur == b) return begin();
+      int step = (b.y >= a.y) ? 1 : -1;
+      return {a.x, cur.y + step};
+    }
+  };
+
+  struct HSeg : IDraw
+  {
+    p_t a, b;
+
+    HSeg(int x1, int x2, int y) : a{x1, y}, b{x2, y} {}
+
+    p_t begin() const override
+    {
+      return a;
+    }
+
+    p_t next(p_t cur) const override
+    {
+      if (cur == b) return begin();
+      int step = (b.x >= a.x) ? 1 : -1;
+      return {cur.x + step, a.y};
+    }
+  };
+
   void make_f(IDraw ** b, size_t k);
   void get_points(IDraw * b, p_t ** ps, size_t & s);
   frame_t build_frame(const p_t * ps, size_t s);
