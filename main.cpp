@@ -81,6 +81,26 @@ namespace topit
     }
   };
 
+  struct Diag : IDraw
+  {
+    p_t a, b;
+
+    Diag(int x1, int y1, int x2, int y2) : a{x1, y1}, b{x2, y2} {}
+
+    p_t begin() const override
+    {
+      return a;
+    }
+
+    p_t next(p_t cur) const override
+    {
+      if (cur == b) return begin();
+      int stepx = (b.x >= a.x) ? 1 : -1;
+      int stepy = (b.y >= a.y) ? 1 : -1;
+      return {cur.x + stepx, cur.y + stepy};
+    }
+  };
+
   void extend(p_t ** pts, size_t s, p_t p);
   size_t get_points(IDraw& b, p_t ** pts, size_t & s);
   f_t build_frame(const p_t * pts, size_t s);
@@ -99,9 +119,9 @@ int main()
 
   try
   {
-    shp[0] = new Dot(0, 0);
-    shp[1] = new Dot(2, 3);
-    shp[2] = new Dot(-5, -2);
+    shp[0] = new Diag(0, 0, 7, 7);
+    shp[1] = new VSeg(0, 0, 7);;
+    shp[2] = new HSeg(0, 7, 0);
 
     for (size_t i = 0; i < 3; ++i)
     {
@@ -162,25 +182,23 @@ void topit::extend(p_t ** pts, size_t s, p_t p)
 
 size_t topit::get_points(IDraw& b, p_t ** pts, size_t & s)
 {
-  size_t upd_s = s + 1;
-  p_t * res = new p_t[upd_s];
-  for (size_t i = 0; i < s; ++i)
-  {
-    res[i] = (*pts)[i];
-  }
+  size_t added = 0;
   p_t p = b.begin();
-  res[s] = p;
-  delete[] *pts;
-  *pts = res;
-  size_t delta = 1;
-  while (b.next(p) != b.begin())
+
+  extend(pts, s, p);
+  ++s;
+  ++added;
+
+  while (true)
   {
     p = b.next(p);
-    extend(pts, s + delta, p);
-    ++delta;
+    if (p == b.begin()) break;
+
+    extend(pts, s, p);
+    ++s;
+    ++added;
   }
-  s = upd_s;
-  return delta;
+  return added;
 }
 
 topit::f_t topit::build_frame(const p_t * p, size_t s)
