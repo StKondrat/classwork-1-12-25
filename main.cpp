@@ -101,6 +101,82 @@ namespace topit
     }
   };
 
+  struct Square : IDraw
+  {
+    p_t start;
+    int side;
+
+    Square(int x, int y, int s) : start{x, y}, side{s} {}
+
+    p_t begin() const override
+    {
+      return start;
+    }
+
+    p_t next(p_t cur) const override
+    {
+      if (cur.x == start.x + 1 && cur.y == start.y)
+      {
+        return begin();
+      }
+      if (cur.y < start.y + side && cur.x == start.x)
+      {
+        return {cur.x, cur.y + 1};
+      }
+      if (cur.y == start.y + side && cur.x < start.x + side)
+      {
+        return {cur.x + 1, cur.y};
+      }
+      if (cur.x == start.x + side && cur.y > start.y)
+      {
+        return {cur.x, cur.y - 1};
+      }
+      if (cur.x > start.x && cur.y == start.y)
+      {
+        return {cur.x - 1, cur.y};
+      }
+      return begin();
+    }
+  };
+
+  struct Rectangle : IDraw
+  {
+    p_t start;
+    int a, b;
+
+    Rectangle(int x, int y, int length, int height) : start{x, y}, a{length}, b{height} {};
+
+    p_t begin() const override
+    {
+      return start;
+    }
+
+    p_t next(p_t cur) const override
+    {
+      if (cur.x == start.x + 1 && cur.y == start.y)
+      {
+        return begin();
+      }
+      if (cur.y < start.y + b && cur.x == start.x)
+      {
+        return {cur.x, cur.y + 1};
+      }
+      if (cur.y == start.y + b && cur.x < start.x + a)
+      {
+        return {cur.x + 1, cur.y};
+      }
+      if (cur.x == start.x + a && cur.y > start.y)
+      {
+        return {cur.x, cur.y - 1};
+      }
+      if (cur.x > start.x && cur.y == start.y)
+      {
+        return {cur.x - 1, cur.y};
+      }
+      return begin();
+    }
+  };
+
   void extend(p_t ** pts, size_t s, p_t p);
   size_t get_points(IDraw& b, p_t ** pts, size_t & s);
   f_t build_frame(const p_t * pts, size_t s);
@@ -112,7 +188,7 @@ namespace topit
 int main()
 {
   using namespace topit;
-  IDraw * shp[3] = {};
+  IDraw * shp[5] = {};
   p_t * pts = nullptr;
   size_t s = 0;
   int err = 0;
@@ -122,8 +198,10 @@ int main()
     shp[0] = new Diag(0, 0, 7, 7);
     shp[1] = new VSeg(0, 0, 7);;
     shp[2] = new HSeg(0, 7, 0);
+    shp[3] = new Square(10, 0, 7);
+    shp[4] = new Rectangle(20, 0, 2, 7);
 
-    for (size_t i = 0; i < 3; ++i)
+    for (size_t i = 0; i < 5; ++i)
     {
       get_points(*shp[i], &pts, s);
     }
@@ -131,7 +209,7 @@ int main()
     char * cnv = build_canvas(fr, '.');
     for (size_t i = 0; i < s; ++i)
     {
-      paint(cnv, fr, pts[i], '#');
+      paint(cnv, fr, pts[i], '@');
     }
     flush(std::cout, cnv, fr);
     delete [] cnv;
@@ -142,6 +220,8 @@ int main()
     std::cerr << "Error!\n";
     err = 1;
   }
+  delete shp[4];
+  delete shp[3];
   delete shp[2];
   delete shp[1];
   delete shp[0];
